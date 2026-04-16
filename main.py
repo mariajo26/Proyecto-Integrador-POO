@@ -7,3 +7,11 @@ print('='*50)
 print('Seleccione el Modo de Juego:')
 print('1. Jugador vs Jugador')
 print('2. Jugador vs Computadora')
+
+
+
+pokedex.mostrar_catalogo_disponible()
+opcion_pokemon = input('Elegir opción: ')
+
+
+pokemon_elegido = pokedex.CATALOGO_POKEMON[opcion_pokemon]
