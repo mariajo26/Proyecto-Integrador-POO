@@ -27,17 +27,13 @@ class Pokemon(ABC):
         self.__energia_actual = nueva_energia 
 
     def atacar(self):
-        self.__energia_actual -= 15
         print(f'{self.nombre} ataco')
 
     def defender(self):
-        self.__energia_actual -= 5
         print(f'{self.nombre} se defendio')
 
 
     def descansar(self):
-        restauracion = 20
-        self.__energia_actual += restauracion
         print(f'{self.nombre} restauro vida')
 
     def __str__(self):
