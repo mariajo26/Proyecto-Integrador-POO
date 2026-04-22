@@ -17,44 +17,51 @@ def menu_principal():
             if modo_juego in (1,2):
                 break
             else:
-                print('[ERROR] Entrada inválida. Escribí 1 o 2.')
+                print('❌ Entrada inválida. Escribí 1 o 2.')
         except ValueError: 
-            print('[ERROR] Ups esa opción ni es un número. Intenta de nuevo')
+            print('❌ Ups esa opción ni es un número. Intenta de nuevo')
     return modo_juego
 
-
-# Menu de acción del pokemon
-def accion_jugador(jugador):
+def mostrar_menu_acciones():
     print('¿Qué acción deseas realizar?')
     print('1. Atacar (Costo: 15 EP)')
     print('2. Defender (Costo: 5 EP)')
     print('3. Descansar (Restaura: 20 EP)')
 
-    enregia_pokemon = jugador.pokemon.energia_actual
+# Devuelve la accón del pokemon - Jugador
+def accion_jugador(jugador):
+    energia = jugador.pokemon.energia_actual
+
+    if energia == 0:
+        print('⚠️ Tu energia es insuficiente para alguna acción. Descanso forzado')
+        return 3
+
+    mostrar_menu_acciones()
 
     while True:
-        if enregia_pokemon <= 0:
-            accion_jugador = 3
-            print(f'[ALERTA] {jugador.pokemon.nombre} descansará para recuperar energía')
-            break
-
         try:
-            accion_jugador = int(input('Elegí una opción: '))
+            opcion = int(input('Elegí una opción: '))
 
-            if accion_jugador in (1,2,3):
-                if accion_jugador == 1 and enregia_pokemon < 15:
-                    print('[ERROR] Tu energía es muy baja para atacar')
-                else:
-                    break
-            else:
-                print('[ERROR] Entrada inválida. Intente nuevamente.')
+            if opcion == 1 and energia < 15:
+                print('❌ Energía insuficiente. Intenta nuevamente')
+                continue
+
+            if opcion == 2 and energia < 5:
+                print('⚠️ Tu energia es insuficiente para alguna acción. Descanso forzado')
+                return 3
+
+            if opcion not in (1,2,3):
+                print('❌ El número ni es una opción. Intente de nuevo')
+                continue
+
+            return opcion
 
         except ValueError:
-            print('[ERROR] Ups esa opción ni es un número. Intente nuevamente.')
-
-    return accion_jugador
+            print('❌ Ups eso ni es un número. Intente nuevamente')
 
 
+# Acción del pokemon - Computadora
+# Retorna la acción que realizara
 def accion_computadora(jugador):
     pokemon = jugador.pokemon
 
@@ -87,40 +94,64 @@ def accion_computadora(jugador):
         else:
             return 3 # descansar
 
+def mostrar_turno(jugador):
+    print(f'\nTURNO DE {jugador.pokemon.nombre.upper()}', end=' ')
+    print('(Computadora)' if jugador.es_cpu else '')
+
+def manejar_estado(pokemon):
+    if pokemon.estado == 'Paralizado':
+        print('\n¡Estás paralizado! Turno perdido')
+        pokemon.estado = 'Normal'
+        return False  
+    return True
+
+def obtener_accion(jugador):
+    if jugador.es_cpu:
+        return accion_computadora(jugador)
+    return accion_jugador(jugador)
+
+def ejecutar_accion(accion, jugador, oponente):
+    pokemon = jugador.pokemon
+
+    match accion:
+        case 1:
+            pokemon.atacar(oponente.pokemon)
+        case 2:
+            pokemon.defender()
+        case 3:
+            pokemon.descansar()
+
+    if pokemon.estado == 'Defensa':
+        pokemon.estado = 'Normal'
 
 def accion_pokemon(jugador, oponente):
-    print(f'\nTURNO DE {jugador.pokemon.nombre.upper()}', end=' ')
+    mostrar_turno(jugador)
 
-    if jugador.es_cpu:
-        print('(Computadora)')
-    else:
-        print('')
+    pokemon = jugador.pokemon
 
-    if not jugador.pokemon.estado == 'Paralizado':
-        print(f'{jugador.pokemon.obtener_estado()}\n')
+    if not manejar_estado(pokemon):
+        return
 
-        if not jugador.es_cpu:
-            accion = accion_jugador(jugador)
-        else:
-            accion = accion_computadora(jugador)
+    print(f'{pokemon.obtener_estado()}\n')
 
-        print('')
+    accion = obtener_accion(jugador)
 
-        match accion:
-            case 1:
-                jugador.pokemon.atacar(oponente.pokemon)
-            case 2:
-                jugador.pokemon.defender()
-            case 3:
-                jugador.pokemon.descansar()
+    print('')
+    ejecutar_accion(accion, jugador, oponente)
 
-        if jugador.pokemon.estado == 'Defender':
-            jugador.pokemon.estado = 'Normal'
 
-    else:
-        print('\n¡Estás paralizado! Turno perdido')
-        jugador.pokemon.estado = 'Normal'
+def obtener_ganador(jugador1, jugador2):
+    p1 = jugador1.pokemon
+    p2 = jugador2.pokemon
 
+    if p1.hp_actual <= 0 and p2.hp_actual <= 0:
+        return 'Empate'
+    elif p1.hp_actual <= 0:
+        return p2.nombre
+    elif p2.hp_actual <= 0:
+        return p1.nombre
+    
+    return None
 
 # --------- PRINCIPAL ---------
 
@@ -129,7 +160,7 @@ while True:
 
     jugador_1 = Jugador(False)
     jugador_1.pokemon = FabricaPokemon.crear_pokemon(1, jugador_1)
-    excepcion = FabricaPokemon.obtener_opcion(jugador_1.pokemon)
+    excepcion = FabricaPokemon.get_pokemon_id(jugador_1.pokemon)
 
     match modo_juego:
         case 1:
@@ -157,17 +188,20 @@ while True:
         else:
             accion_pokemon(jugador_2, jugador_1)
             turno = True
+        
+        ganador = obtener_ganador(jugador_1, jugador_2)
 
-        if jugador_1.pokemon.hp_actual <= 0 and jugador_2.pokemon.hp_actual <= 0:
+        if ganador == None:
+            continue
+        elif ganador == 'empate':
             print("\n¡Empate épico! Ambos Pokémon cayeron")
             break
+        else:
+            if ganador == jugador_1.pokemon.nombre:
+                perdedor = jugador_2.pokemon.nombre
+            else:
+                perdedor = jugador_1.pokemon.nombre
 
-        elif jugador_1.pokemon.hp_actual <= 0:
-            print(f'\n¡{jugador_2.pokemon.nombre} ha sido derrotado en combate!')
-            print(f'\n¡Felicidades {jugador_2.pokemon.nombre} ha ganado!')
-            break
-
-        elif jugador_2.pokemon.hp_actual <= 0:
-            print(f'\n¡{jugador_1.pokemon.nombre} ha sido derrotado en combate!')
-            print(f'\n¡Felicidades {jugador_1.pokemon.nombre} ha ganado!')
+            print(f'\n¡{perdedor} ha sido derrotado en combate! 😵')
+            print(f'\n¡Felicidades {ganador} ha ganado 🏆🥇!')
             break

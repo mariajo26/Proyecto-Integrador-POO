@@ -11,13 +11,13 @@ class PokemonFuego(Pokemon):
         if isinstance(oponente, pokemon_planta.PokemonPlanta):
             dano = Pokemon.dano * 2
         elif isinstance(oponente, pokemon_agua.PokemonAgua):
-            dano = Pokemon.dano / 3
+            dano = Pokemon.dano * 2 / 3
         else:
             dano = Pokemon.dano
         
-        self.tipo_dano(oponente, dano)
+        self.tipo_dano(oponente, int(dano))
         
-        oponente.hp_actual -= dano
+        oponente.hp_actual -= int(dano)
 
     def tipo_ataque(self):
-        print(f'¡{self.nombre} usa un ataque de Fuego!')
+        print(f'¡{self.nombre} usa un ataque de Fuego! 🔥')

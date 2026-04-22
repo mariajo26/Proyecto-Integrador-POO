@@ -18,11 +18,11 @@ class PokemonElectrico(Pokemon):
 
         dano = Pokemon.dano
 
-        self.tipo_dano(oponente, dano)
+        self.tipo_dano(oponente, int(dano))
         
-        oponente.hp_actual -= dano
+        oponente.hp_actual -= int(dano)
     
 
     
     def tipo_ataque(self):
-        print(f'¡{self.nombre} usa un ataque Electrico!')
+        print(f'¡{self.nombre} usa un ataque Electrico! ⚡')

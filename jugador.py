@@ -21,7 +21,7 @@ class Jugador:
                     continue
 
                 if opcion_pokemon == excepcion:
-                    print('Escoge otro Pokémon. Ese ya está repetido.')
+                    print('\nEscoge otro Pokémon. Ese ya está repetido.\n')
                     continue
 
                 return opcion_pokemon
@@ -42,7 +42,7 @@ class Jugador:
 
 class FabricaPokemon:
     @staticmethod
-    def obtener_opcion(pokemon):
+    def get_pokemon_id(pokemon):
         for clave, datos in pokedex.CATALOGO_POKEMON.items():
             if datos['nombre'] == pokemon.nombre:
                 return int(clave)
